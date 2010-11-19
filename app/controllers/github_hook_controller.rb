@@ -1,4 +1,3 @@
-require 'json'
 require 'open3'
 
 class GithubHookController < ApplicationController
@@ -37,11 +36,9 @@ class GithubHookController < ApplicationController
     exec(command)
   end
 
-  # Gets the project identifier from the querystring parameters and if that's not supplied, assume
-  # the Github repository name is the same as the project identifier.
+  # Gets the project identifier from the querystring parameters.
   def get_identifier
-    payload = JSON.parse(params[:payload])
-    identifier = params[:project_id] || payload['repository']['name']
+    identifier = params[:project_id]
     raise ActiveRecord::RecordNotFound, "Project identifier not specified" if identifier.nil?
     return identifier
   end
