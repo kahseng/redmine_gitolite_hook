@@ -1,13 +1,13 @@
 require 'open3'
 
-class GithubHookController < ApplicationController
+class GitoliteHookController < ApplicationController
 
   skip_before_filter :verify_authenticity_token, :check_if_login_required
 
   def index
     repository = find_repository
 
-    # Fetch the changes from Github
+    # Fetch the changes from Gitolite
     update_repository(repository)
 
     # Fetch the new changesets into Redmine
@@ -19,15 +19,15 @@ class GithubHookController < ApplicationController
   private
 
   def exec(command)
-    logger.debug { "GithubHook: Executing command: '#{command}'" }
+    logger.debug { "GitoliteHook: Executing command: '#{command}'" }
     stdin, stdout, stderr = Open3.popen3(command)
 
     output = stdout.readlines.collect(&:strip)
     errors = stderr.readlines.collect(&:strip)
 
-    logger.debug { "GithubHook: Output from git:" }
-    logger.debug { "GithubHook:  * STDOUT: #{output}"}
-    logger.debug { "GithubHook:  * STDERR: #{output}"}
+    logger.debug { "GitoliteHook: Output from git:" }
+    logger.debug { "GitoliteHook:  * STDOUT: #{output}"}
+    logger.debug { "GitoliteHook:  * STDERR: #{output}"}
   end
 
   # Fetches updates from the remote repository
