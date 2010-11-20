@@ -39,6 +39,7 @@ class GithubHookController < ApplicationController
   # Gets the project identifier from the querystring parameters.
   def get_identifier
     identifier = params[:project_id]
+    # TODO: Can obtain 'oldrev', 'newrev', 'refname', 'user' in POST params for further action if needed.
     raise ActiveRecord::RecordNotFound, "Project identifier not specified" if identifier.nil?
     return identifier
   end

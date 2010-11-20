@@ -1,48 +1,106 @@
-= Redmine Github Hook
+= Redmine Gitolite Hook
 
-This plugin allows you to update your local Git repositories in Redmine when changes have been pushed to Github.
+This plugin allows you to update your local Git repositories in Redmine when changes have been pushed to your Gitolite server.
 
 == Description
 
-Redmine <http://redmine.org> has supported Git repositories for a long time, allowing you to browse your code and view your changesets directly in Redmine. For this purpose, Redmine relies on local clones of the Git repositories.
+This project is a fork of {koppen/redmine_github_hook}[https://github.com/koppen/redmine_github_hook]
+by {Jakob Skjerning}[https://github.com/koppen] with modifications made to support
+{Gitolite}[https://github.com/sitaramc/gitolite],
+a centralised git server by {Sitaram Chamarty}[https://github.com/sitaramc].
 
-If your shared repository is on a remote machine - for example on Github - this unfortunately means a bit of legwork to keep the local, Redmine-accessible repository up-to-date. The common approach is to set up a cronjob that pulls in any changes with regular intervals and updates Redmine with them.
+{Redmine}[http://redmine.org] has supported Git repositories for a long time, allowing you to browse
+your code and view your changesets directly in Redmine.
+For this purpose, Redmine relies on local clones of the Git repositories.
 
-That approach works perfectly fine, but is a bit heavy-handed and cumbersome. The Redmine Github Hook plugin allows Github to notify your Redmine installation when changes have been pushed to a repository, triggering an update of your local repository and Redmine data only when it is actually necessary.
+If your shared repository is on a remote machine - for example on a Gitolite server - this unfortunately
+means a bit of legwork to keep the local, Redmine-accessible repository up-to-date. The common approach
+is to set up a cronjob that pulls in any changes with regular intervals and updates Redmine with them.
+
+That approach works perfectly fine, but is a bit heavy-handed and cumbersome. The Redmine Gitolite
+Hook plugin allows Gitolite to notify your Redmine installation when changes have been pushed to a
+repository, triggering an update of your local repository and Redmine data only when it is actually
+necessary.
 
 
 == Installation
 
 1. Installing the plugin
-   1. Install the json gem <http://json.rubyforge.org/> on the machine where Redmine is running.
-   2. Follow the plugin installation procedure at http://www.redmine.org/wiki/redmine/Plugins.
-   3. Restart your Redmine.
-   4. If you already have a local Git repository set up and working from Redmine go to step 3, otherwise continue at step 2.
+   1. Follow the plugin installation procedure at http://www.redmine.org/wiki/redmine/Plugins.
+      1. For convenience, the latest steps for Redmine 1.0.3 are to go to +$REDMINE_DIR/vendor/plugins+
+      2. +git clone git://github.com/kahseng/redmine_gitolite_hook.git+
+   2. Restart your Redmine.
+   3. If you already have a local Git repository set up and working from Redmine go to step 3, otherwise continue at step 2.
 
-2. Adding a Git repository to a project (note, this should work whether you want to use Redmine Github Hook or not). Either follow the instructions at http://www.redmine.org/wiki/redmine/HowTo_keep_in_sync_your_git_repository_for_redmine or the ones below:
-   1. Go to the directory on your Redmine machine where you want to keep your repository, for example /home/redmine/repositories/.
-   2. Get a clone of the repository into that location: git clone git://github.com/koppen/redmine_github_hook.git. This creates a .git directory at /home/redmine/repositories/redmine_github_hook/.git.
+2. Adding a Git repository to a project (note, this should work whether you want to use Redmine Gitolite Hook or not).
+   Either follow the instructions at http://www.redmine.org/wiki/redmine/HowTo_keep_in_sync_your_git_repository_for_redmine or the ones below:
+   1. Go to the directory on your Redmine machine where you want to keep your repository +$REDMINE_REPO_DIR+,
+      for example +/home/redmine/repositories/+.
+   2. Get a clone of the Gitolite repository into that location:
+      1. +git clone git@your_gitolite_server:repository_name+
+      2. This creates a .git directory at +$REDMINE_REPO_DIR/repository_name/.git+.
    3. Open Redmine in your browser and navigate to the Settings for the project you want to add a Git repository to.
-   4. Under the Repository tab, choose Git as your SCM and enter the full path to the .git directory from step 2; /home/redmine/repositories/redmine_github_hook/.git/ . Click "Create".
+   4. Under the Repository tab, choose Git as your SCM and enter the full path to the .git directory from step 2;
+      +$REDMINE_REPO_DIR/repository_name/.git/ . Click "Create".
    5. Click the new "Repository" link in the main navigation to verify that your repository integration works - this might take a while as Redmine is fetching all commits.
 
-3. Connecting Github to Redmine
-   1. Go to the repository Admin interface on Github.
-   2. Under "Service Hooks" add a new "Post-Receive URL" of the format: "[redmine_installation_url]/github_hook" (for example "http://example.com/github_hook").
-      1. By default, Github Hook assumes your Github repository name is the same as the project identifier in your Redmine installation. If this is not the case, you can specify the actual Redmine project identifier in the Post-Receive URL by using the format "[redmine_installation_url]/github_hook?project_id=[identifier]" (for example "http://example.com/github_hook?project_id=my_project").
+3. Connecting Gitolite to Redmine
+   1. Go to your Gitolite repository on your Gitolite server +$GL_REPO_DIR+, for example /home/git/repositories/testing.git/+.
+   2. +mv $GL_REPO_DIR/hooks/post-receive.sample $GL_REPO_DIR/hooks/post-receive+
+   3. Replace the hook file's contents with:
 
-That's it. Github will now send a HTTP POST to the Redmine Github Hook plugin whenever changes are pushed to Github. The plugin then takes care of pulling the changes to the local repository and updating the Redmine database with them.
+<tt>
+#!/bin/sh
+#
+# An example hook script for the "post-receive" event.
+#
+# The "post-receive" script is run after receive-pack has accepted a pack
+# and the repository has been updated.  It is passed arguments in through
+# stdin in the form
+#  <oldrev> <newrev> <refname>
+# For example:
+#  aa453216d1b3e49e7f6f98441fa56946ddcd6a20 68f7abf4e6f922807889f52bc043ecd31b79f814 refs/heads/master
+#
+# see contrib/hooks/ for a sample, or uncomment the next line and
+# rename the file to "post-receive".
 
+#. /usr/share/doc/git-core/contrib/hooks/post-receive-email
+
+REDMINE_SERVER=http://your.redmine.server.com
+HOOK_URL=gitolite_hook
+FETCH_URL=sys/fetch_changesets
+KEY=your_redmine_api_key
+LOG=/home/git/logs/post-receive.log
+
+# Read from stdin
+while read old new refname; do
+    echo "Post-receive hook for this repo: [$GL_REPO] $old $new $refname"
+    # Hit the Redmine Gitolite hook for this repo
+    curl -d "oldrev=$old&newrev=$new&refname=$refname&user=$GL_USER" "$REDMINE_SERVER/$HOOK_URL?project_id=$GL_REPO"
+    # Hit the fetch changesets URL
+    curl "$REDMINE_SERVER/$FETCH_URL?id=$GL_REPO&key=$KEY"
+    echo "Done."
+    echo ""
+done
+</tt>
+
+That's it. Gitolite will now send a HTTP POST to the Redmine Gitolite Hook plugin whenever changes are pushed to the Gitolite server.
+The plugin then takes care of pulling the changes to the local repository and updating the Redmine database with them.
 
 == Assumptions
 
 * Redmine 0.9 running on a *nix-like system. It will probably work on Redmine 0.8 as well.
 * Git available on the commandline.
+* You have Gitolite set up and are comfortable with creating hooks.
 
+== Todos
+
+* Update tests to work with Gitolite instead of Github
 
 == License
 
-Copyright (c) 2009 Jakob Skjerning
+Copyright (c) 2010 Kah Seng Tay - Gitolite modifications
+Copyright (c) 2009 Jakob Skjerning - Original
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
