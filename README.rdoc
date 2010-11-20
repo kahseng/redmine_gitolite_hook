@@ -27,62 +27,61 @@ necessary.
 
 1. Installing the plugin
    1. Follow the plugin installation procedure at http://www.redmine.org/wiki/redmine/Plugins.
-      1. For convenience, the latest steps for Redmine 1.0.3 are to go to +$REDMINE_DIR/vendor/plugins+
-      2. +git clone git://github.com/kahseng/redmine_gitolite_hook.git+
+      1. For convenience, the latest steps for Redmine 1.0.3 are to go to <tt>$REDMINE_DIR/vendor/plugins</tt>
+      2. <tt>git clone git://github.com/kahseng/redmine_gitolite_hook.git</tt>
    2. Restart your Redmine.
    3. If you already have a local Git repository set up and working from Redmine go to step 3, otherwise continue at step 2.
 
 2. Adding a Git repository to a project (note, this should work whether you want to use Redmine Gitolite Hook or not).
    Either follow the instructions at http://www.redmine.org/wiki/redmine/HowTo_keep_in_sync_your_git_repository_for_redmine or the ones below:
-   1. Go to the directory on your Redmine machine where you want to keep your repository +$REDMINE_REPO_DIR+,
-      for example +/home/redmine/repositories/+.
+   1. Go to the directory on your Redmine machine where you want to keep your repository <tt>$REDMINE_REPO_DIR</tt>,
+      for example <tt>/home/redmine/repositories/</tt>.
    2. Get a clone of the Gitolite repository into that location:
-      1. +git clone git@your_gitolite_server:repository_name+
-      2. This creates a .git directory at +$REDMINE_REPO_DIR/repository_name/.git+.
+      1. <tt>git clone git@your_gitolite_server:repository_name</tt>
+      2. This creates a .git directory at <tt>REDMINE_REPO_DIR/repository_name/.git</tt>
    3. Open Redmine in your browser and navigate to the Settings for the project you want to add a Git repository to.
    4. Under the Repository tab, choose Git as your SCM and enter the full path to the .git directory from step 2;
-      +$REDMINE_REPO_DIR/repository_name/.git/ . Click "Create".
-   5. Click the new "Repository" link in the main navigation to verify that your repository integration works - this might take a while as Redmine is fetching all commits.
+      <tt>$REDMINE_REPO_DIR/repository_name/.git/</tt>. Click "Create".
+   5. Click the new "Repository" link in the main navigation to verify that your repository integration works -
+      this might take a while as Redmine is fetching all commits.
 
 3. Connecting Gitolite to Redmine
-   1. Go to your Gitolite repository on your Gitolite server +$GL_REPO_DIR+, for example /home/git/repositories/testing.git/+.
-   2. +mv $GL_REPO_DIR/hooks/post-receive.sample $GL_REPO_DIR/hooks/post-receive+
+   1. Go to your Gitolite repository on your Gitolite server <tt>$GL_REPO_DIR</tt>, for example <tt>/home/git/repositories/testing.git/</tt>.
+   2. <tt>mv $GL_REPO_DIR/hooks/post-receive.sample $GL_REPO_DIR/hooks/post-receive</tt>
    3. Replace the hook file's contents with:
 
-<tt>
-#!/bin/sh
-#
-# An example hook script for the "post-receive" event.
-#
-# The "post-receive" script is run after receive-pack has accepted a pack
-# and the repository has been updated.  It is passed arguments in through
-# stdin in the form
-#  <oldrev> <newrev> <refname>
-# For example:
-#  aa453216d1b3e49e7f6f98441fa56946ddcd6a20 68f7abf4e6f922807889f52bc043ecd31b79f814 refs/heads/master
-#
-# see contrib/hooks/ for a sample, or uncomment the next line and
-# rename the file to "post-receive".
+    #!/bin/sh
+    #
+    # An example hook script for the "post-receive" event.
+    #
+    # The "post-receive" script is run after receive-pack has accepted a pack
+    # and the repository has been updated.  It is passed arguments in through
+    # stdin in the form
+    #  <oldrev> <newrev> <refname>
+    # For example:
+    #  aa453216d1b3e49e7f6f98441fa56946ddcd6a20 68f7abf4e6f922807889f52bc043ecd31b79f814 refs/heads/master
+    #
+    # see contrib/hooks/ for a sample, or uncomment the next line and
+    # rename the file to "post-receive".
 
-#. /usr/share/doc/git-core/contrib/hooks/post-receive-email
+    #. /usr/share/doc/git-core/contrib/hooks/post-receive-email
 
-REDMINE_SERVER=http://your.redmine.server.com
-HOOK_URL=gitolite_hook
-FETCH_URL=sys/fetch_changesets
-KEY=your_redmine_api_key
-LOG=/home/git/logs/post-receive.log
+    REDMINE_SERVER=http://your.redmine.server.com
+    HOOK_URL=gitolite_hook
+    FETCH_URL=sys/fetch_changesets
+    KEY=your_redmine_api_key
+    LOG=/home/git/logs/post-receive.log
 
-# Read from stdin
-while read old new refname; do
-    echo "Post-receive hook for this repo: [$GL_REPO] $old $new $refname"
-    # Hit the Redmine Gitolite hook for this repo
-    curl -d "oldrev=$old&newrev=$new&refname=$refname&user=$GL_USER" "$REDMINE_SERVER/$HOOK_URL?project_id=$GL_REPO"
-    # Hit the fetch changesets URL
-    curl "$REDMINE_SERVER/$FETCH_URL?id=$GL_REPO&key=$KEY"
-    echo "Done."
-    echo ""
-done
-</tt>
+    # Read from stdin
+    while read old new refname; do
+        echo "Post-receive hook for this repo: [$GL_REPO] $old $new $refname"
+        # Hit the Redmine Gitolite hook for this repo
+        curl -d "oldrev=$old&newrev=$new&refname=$refname&user=$GL_USER" "$REDMINE_SERVER/$HOOK_URL?project_id=$GL_REPO"
+        # Hit the fetch changesets URL
+        curl "$REDMINE_SERVER/$FETCH_URL?id=$GL_REPO&key=$KEY"
+        echo "Done."
+        echo ""
+    done
 
 That's it. Gitolite will now send a HTTP POST to the Redmine Gitolite Hook plugin whenever changes are pushed to the Gitolite server.
 The plugin then takes care of pulling the changes to the local repository and updating the Redmine database with them.
@@ -100,6 +99,7 @@ The plugin then takes care of pulling the changes to the local repository and up
 == License
 
 Copyright (c) 2010 Kah Seng Tay - Gitolite modifications
+
 Copyright (c) 2009 Jakob Skjerning - Original
 
 Permission is hereby granted, free of charge, to any person
