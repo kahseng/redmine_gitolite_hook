@@ -48,11 +48,9 @@ necessary.
 3. Connecting Gitolite to Redmine
    1. Go to your Gitolite repository on your Gitolite server <tt>$GL_REPO_DIR</tt>, for example <tt>/home/git/repositories/testing.git/</tt>.
    2. <tt>mv $GL_REPO_DIR/hooks/post-receive.sample $GL_REPO_DIR/hooks/post-receive</tt>
-   3. Replace the hook file's contents with:
+   3. Replace the hook with something that works for your Gitolite server, for example:
 
     #!/bin/sh
-    #
-    # An example hook script for the "post-receive" event.
     #
     # The "post-receive" script is run after receive-pack has accepted a pack
     # and the repository has been updated.  It is passed arguments in through
@@ -60,11 +58,6 @@ necessary.
     #  <oldrev> <newrev> <refname>
     # For example:
     #  aa453216d1b3e49e7f6f98441fa56946ddcd6a20 68f7abf4e6f922807889f52bc043ecd31b79f814 refs/heads/master
-    #
-    # see contrib/hooks/ for a sample, or uncomment the next line and
-    # rename the file to "post-receive".
-
-    #. /usr/share/doc/git-core/contrib/hooks/post-receive-email
 
     REDMINE_SERVER=http://your.redmine.server.com
     HOOK_URL=gitolite_hook
@@ -82,6 +75,9 @@ necessary.
         echo "Done."
         echo ""
     done
+
+   4. A more detailed and customizable hook that uses git configs can be found under <tt>contrib/hooks/post-receive-redmine_gitolite</tt>,
+      graciously contributed by {Beau Simensen}[https://github.com/simensen].
 
 That's it. Gitolite will now send a HTTP POST to the Redmine Gitolite Hook plugin whenever changes are pushed to the Gitolite server.
 The plugin then takes care of pulling the changes to the local repository and updating the Redmine database with them.
