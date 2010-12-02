@@ -79,6 +79,12 @@ necessary.
    4. A more detailed and customizable hook that uses git configs can be found under <tt>contrib/hooks/post-receive-redmine_gitolite</tt>,
       graciously contributed by {Beau Simensen}[https://github.com/simensen].
 
+      Config options are:
+      * <tt>hooks.redmine_gitolite.key</tt>
+      * <tt>hooks.redmine_gitolite.server</tt>
+      * <tt>hooks.redmine_gitolite.projectid</tt>
+      * <tt>hooks.redmine_gitolite.curlignoresecurity</tt> (bool)
+
 That's it. Gitolite will now send a HTTP POST to the Redmine Gitolite Hook plugin whenever changes are pushed to the Gitolite server.
 The plugin then takes care of pulling the changes to the local repository and updating the Redmine database with them.
 
