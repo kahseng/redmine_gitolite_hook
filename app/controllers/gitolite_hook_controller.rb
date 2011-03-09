@@ -27,7 +27,7 @@ class GitoliteHookController < ApplicationController
 
     logger.debug { "GitoliteHook: Output from git:" }
     logger.debug { "GitoliteHook:  * STDOUT: #{output}"}
-    logger.debug { "GitoliteHook:  * STDERR: #{output}"}
+    logger.debug { "GitoliteHook:  * STDERR: #{errors}"}
   end
 
   # Fetches updates from the remote repository
